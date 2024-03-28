@@ -7,70 +7,92 @@ import java.util.Map;
 
 import javax.crypto.SecretKey;
 
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import com.study.auth.token.dto.JwtTokenDTO;
 import com.study.auth.user.dto.UserDTO;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    public JwtTokenDTO createToken(UserDTO userDTO) {
+    // access token valid time (3 hours)
+    @Value("${jwt.accessToken.time}")
+    private long accessValidTime;
 
-        /*
-         * header 생성 > Map의 형태로 생성
-         * payload 생성 > Map의 형태로 생성
-         * signature 생성
-         * 
-         * token 생성
-         */
+    // refresh token valid time (1 day)
+    @Value("${jwt.refreshToken.time}")
+    private long refreshValidTime;
+
+    // secret key
+    @Value("${jwt.secretKey}")
+    private String secretKey;
+
+    public JwtTokenDTO generateToken(UserDTO userDTO) {
+
+        // header generate (Map)
         Map<String, Object> headers = new HashMap<String, Object>();
         headers.put("typ", "JWT");
 
+        // payLoad generate (Map)
         Map<String, Object> payloads = new HashMap<String, Object>(); 
-        payloads.put("KEY", "HelloWorld");
-        payloads.put("NickName","Erjuer"); 
-        payloads.put("Age","29");
-        payloads.put("TempAuth","Y");
+        payloads.put("Id", userDTO.getId()); 
 
-        // String str = "MyNickNameisErjuerAndNameisMinsu" 값을 byte 형변환 
-        SecretKey key = Keys.hmacShaKeyFor("MyNickNameisErjuerAndNameisMinsu".getBytes(StandardCharsets.UTF_8));
+        // secretKey generate
+        SecretKey key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
 
-        // 토큰 만료 시간
-        Long expiredTime = 1000 * 60L * 60L * 1L;
-        // 토큰 유효 시간 (밀리 세컨드 단위)
-        Date expireDate = new Date();
-        expireDate.setTime(expireDate.getTime() + expiredTime);
+        // token valid time setting ( currentTime + validTime )
+        Date currentDate = new Date();
+        Date accessTokenExpireDate = new Date();
+        Date refreshTokenExpireDate = new Date();
+        accessTokenExpireDate.setTime(currentDate.getTime() + accessValidTime);
+        refreshTokenExpireDate.setTime(currentDate.getTime() + refreshValidTime);
 
-        // 토큰 생성
-        String jwt = Jwts.builder()
+        // accessToken generate
+        String accessJwt = Jwts.builder()
                 .setHeader(headers)
                 .setClaims(payloads)
-                .setSubject("Test")
-                .setExpiration(expireDate)
+                .setSubject(userDTO.getId())
+                .setIssuedAt(currentDate)
+                .setExpiration(accessTokenExpireDate)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+
+        // refreshToken generate
+        String refreshJwt = Jwts.builder()
+                .setHeader(headers)
+                .setClaims(payloads)
+                .setSubject(userDTO.getId())
+                .setIssuedAt(currentDate)
+                .setExpiration(refreshTokenExpireDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
         JwtTokenDTO tokenDTO = JwtTokenDTO.builder()
-                .accessToken(jwt)
-                .refreshToken(jwt)
+                .accessToken(accessJwt)
+                .refreshToken(refreshJwt)
                 .build();
 
         return tokenDTO;
     }
 
-    public boolean checkExpiredToken() {
-        
-        return false;
+    public boolean checkExpiredToken(String token) {
+
+        JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(secretKey).build();
+        Claims claims = jwtParser.parseClaimsJws(token).getBody();
+        Date expiration = claims.getExpiration();
+        return expiration.before(new Date());
     }
 
-    public String createTokenByRefreshToken() {
+    public String reGenerateToken(UserDTO userDTO) {
         
         return "";
     }

@@ -18,3 +18,13 @@ spring:
 # 기동 서버 포트 설정
 server:
   port: 8088
+
+# JWT 유효시간
+jwt:
+  secretKey: mf93nveio49824foilmlfdmvnew9jf3k2d9
+  accessToken:
+    # 3 * 60 * 60 * 1000 (3 시간)
+    time: 10800000
+  refreshToken:
+    # 24 * 60 * 60 *1000 (1 일)
+    time: 86400000

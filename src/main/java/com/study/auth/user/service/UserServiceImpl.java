@@ -1,10 +1,14 @@
 package com.study.auth.user.service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.study.auth.exception.ErrorCode;
+import com.study.auth.exception.dto.ExistUserException;
+import com.study.auth.exception.dto.InvalidParameterException;
+import com.study.auth.exception.dto.UserNotFoundException;
 import com.study.auth.user.dto.UserDTO;
 import com.study.auth.user.entity.User;
 import com.study.auth.user.repository.UserRepository;
@@ -18,24 +22,30 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
 
     @Override
-    public Map<String, Object> checkUser(UserDTO userDTO) {
+    public UserDTO saveUser(UserDTO userDTO) {
 
-        Map<String, Object> resultMap = new HashMap<>();
-        resultMap.put("result", false);
+        // Exist User Check
+        Optional<User> existUser = userRepository.findById(userDTO.getId());
+        if (existUser.isPresent()) {
+            throw new ExistUserException(HttpStatus.FOUND, ErrorCode.EXIST_USER, "User already exist.");
+        }
+
+        User saveUser = userRepository.save(userDTO.toEntity());
+        return saveUser.toDTO();
+    }
+
+    @Override
+    public UserDTO checkUser(UserDTO userDTO) {
 
         if (userDTO.getId() == null || userDTO.getPassword() == null) {
-            resultMap.put("msg", "BAD_REQUEST");
-            return resultMap;
+            throw new InvalidParameterException(HttpStatus.BAD_REQUEST, ErrorCode.INVALID_PARAMETER, "Id or Password is not include.");
         }
 
         User user = userRepository.findUserByIdAndPassword(userDTO.getId(), userDTO.getPassword());
         if (user == null) {
-            resultMap.put("msg", "NOT_FOUND_USER");
-            return resultMap;
+            throw new UserNotFoundException(HttpStatus.NOT_FOUND, ErrorCode.USER_NOT_FOUND, "User not found.");
         }
 
-        resultMap.put("user", user.toDTO());
-        resultMap.put("result", true);
-        return resultMap;
+        return user.toDTO();
     }
 }
