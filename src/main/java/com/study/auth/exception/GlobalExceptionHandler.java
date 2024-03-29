@@ -4,9 +4,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.study.auth.exception.dto.ExistUserException;
-import com.study.auth.exception.dto.InvalidParameterException;
-import com.study.auth.exception.dto.UserNotFoundException;
+import com.study.auth.exception.exceptionDTO.ExistUserException;
+import com.study.auth.exception.exceptionDTO.InvalidParameterException;
+import com.study.auth.exception.exceptionDTO.UserNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -17,12 +17,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidParameterException.class)
-    protected ResponseEntity<ErrorDTO> invalidParameterException(InvalidParameterException ex) {
+    protected ResponseEntity<ErrorDTO> invalidParameterExceptionHandler(InvalidParameterException ex) {
         return ErrorDTO.toResponseEntity(ex);
     }
 
     @ExceptionHandler(ExistUserException.class)
-    protected ResponseEntity<ErrorDTO> existUserException(ExistUserException ex) {
+    protected ResponseEntity<ErrorDTO> existUserExceptionHandler(ExistUserException ex) {
         return ErrorDTO.toResponseEntity(ex);
     }
 

@@ -1,4 +1,4 @@
-package com.study.auth.exception.dto;
+package com.study.auth.exception.exceptionDTO;
 
 import org.springframework.http.HttpStatus;
 

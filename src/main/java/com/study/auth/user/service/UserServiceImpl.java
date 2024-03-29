@@ -6,9 +6,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.study.auth.exception.ErrorCode;
-import com.study.auth.exception.dto.ExistUserException;
-import com.study.auth.exception.dto.InvalidParameterException;
-import com.study.auth.exception.dto.UserNotFoundException;
+import com.study.auth.exception.exceptionDTO.ExistUserException;
+import com.study.auth.exception.exceptionDTO.InvalidParameterException;
+import com.study.auth.exception.exceptionDTO.UserNotFoundException;
 import com.study.auth.user.dto.UserDTO;
 import com.study.auth.user.entity.User;
 import com.study.auth.user.repository.UserRepository;
@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService {
         // Exist User Check
         Optional<User> existUser = userRepository.findById(userDTO.getId());
         if (existUser.isPresent()) {
-            throw new ExistUserException(HttpStatus.FOUND, ErrorCode.EXIST_USER, "User already exist.");
+            throw new ExistUserException(HttpStatus.CONFLICT, ErrorCode.EXIST_USER, "User already exist.");
         }
 
         User saveUser = userRepository.save(userDTO.toEntity());

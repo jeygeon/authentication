@@ -2,9 +2,9 @@ package com.study.auth.exception;
 
 import org.springframework.http.ResponseEntity;
 
-import com.study.auth.exception.dto.ExistUserException;
-import com.study.auth.exception.dto.InvalidParameterException;
-import com.study.auth.exception.dto.UserNotFoundException;
+import com.study.auth.exception.exceptionDTO.ExistUserException;
+import com.study.auth.exception.exceptionDTO.InvalidParameterException;
+import com.study.auth.exception.exceptionDTO.UserNotFoundException;
 
 import lombok.Builder;
 import lombok.Data;
@@ -44,6 +44,7 @@ public class ErrorDTO {
     }
 
     public static ResponseEntity<ErrorDTO> toResponseEntity(ExistUserException ex) {
+
         ErrorCode errorType = ex.getErrorCode();
         String detail = ex.getDetail();
 

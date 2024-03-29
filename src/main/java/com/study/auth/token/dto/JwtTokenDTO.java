@@ -12,9 +12,4 @@ public class JwtTokenDTO {
     private String accessToken;
 
     private String refreshToken;
-
-    public boolean isExpired() {
-
-        return false;
-    }
 }
