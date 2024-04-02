@@ -14,7 +14,7 @@ import com.study.auth.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
-@RestController("/api")
+@RestController
 @RequiredArgsConstructor
 public class AuthController {
 

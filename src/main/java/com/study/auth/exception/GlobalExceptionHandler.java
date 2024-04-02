@@ -12,17 +12,17 @@ import com.study.auth.exception.exceptionDTO.UserNotFoundException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
-    protected ResponseEntity<ErrorDTO> userNotFoundExceptionHandler(UserNotFoundException ex) {
+    private ResponseEntity<ErrorDTO> userNotFoundExceptionHandler(UserNotFoundException ex) {
         return ErrorDTO.toResponseEntity(ex);
     }
 
     @ExceptionHandler(InvalidParameterException.class)
-    protected ResponseEntity<ErrorDTO> invalidParameterExceptionHandler(InvalidParameterException ex) {
+    private ResponseEntity<ErrorDTO> invalidParameterExceptionHandler(InvalidParameterException ex) {
         return ErrorDTO.toResponseEntity(ex);
     }
 
     @ExceptionHandler(ExistUserException.class)
-    protected ResponseEntity<ErrorDTO> existUserExceptionHandler(ExistUserException ex) {
+    private ResponseEntity<ErrorDTO> existUserExceptionHandler(ExistUserException ex) {
         return ErrorDTO.toResponseEntity(ex);
     }
 

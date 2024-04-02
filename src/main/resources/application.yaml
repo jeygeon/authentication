@@ -21,9 +21,9 @@ server:
 
 # JWT 유효시간
 jwt:
-  secretKey: mf93nveio49824foilmlfdmvnew9jf3k2d9
+  secretKey: mf93nveio49824foilm131542gdsfg2lfdmvnew9jf3k2d9
   accessToken:
-    # 3 * 60 * 60 * 1000 (3 시간)
+    # 3 * 60 * 60 * 1000 (3 시간) 10800000 60000
     time: 10800000
   refreshToken:
     # 24 * 60 * 60 *1000 (1 일)

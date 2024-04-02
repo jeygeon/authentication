@@ -10,6 +10,4 @@ import lombok.Setter;
 public class JwtTokenDTO {
 
     private String accessToken;
-
-    private String refreshToken;
 }

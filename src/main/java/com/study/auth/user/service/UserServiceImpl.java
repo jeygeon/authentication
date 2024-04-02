@@ -29,7 +29,6 @@ public class UserServiceImpl implements UserService {
         if (existUser.isPresent()) {
             throw new ExistUserException(HttpStatus.CONFLICT, ErrorCode.EXIST_USER, "User already exist.");
         }
-
         User saveUser = userRepository.save(userDTO.toEntity());
         return saveUser.toDTO();
     }

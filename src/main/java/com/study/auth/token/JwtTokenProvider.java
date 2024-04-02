@@ -121,7 +121,7 @@ public class JwtTokenProvider {
 
     public boolean isExpired(String token) {
 
-        JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(secretKey).build();
+        JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(secretKey.getBytes()).build();
         Claims claims = jwtParser.parseClaimsJws(token).getBody();
         Date expiration = claims.getExpiration();
         return expiration.before(new Date());
