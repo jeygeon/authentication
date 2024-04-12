@@ -8,7 +8,7 @@ spring:
 
   jpa:
     # 쿼리 확인 (default: false)
-    show-sql: true
+    # show-sql: true
 
     # 변수 명 그대로 사용 (자동으로 snake case 변환 방지)
     hibernate:
@@ -24,7 +24,7 @@ jwt:
   secretKey: mf93nveio49824foilm131542gdsfg2lfdmvnew9jf3k2d9
   accessToken:
     # 3 * 60 * 60 * 1000 (3 시간) 10800000 60000
-    time: 10800000
+    time: 60000
   refreshToken:
     # 24 * 60 * 60 *1000 (1 일)
     time: 86400000

@@ -18,12 +18,16 @@ import com.study.auth.token.repository.UserRefreshTokenRepository;
 import com.study.auth.user.dto.UserDTO;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
@@ -42,7 +46,7 @@ public class JwtTokenProvider {
 
     private final UserRefreshTokenRepository userRefreshTokenRepository;
 
-    public JwtTokenDTO generateToken(UserDTO userDTO) {
+    public String generateToken(UserDTO userDTO) {
 
         // header generate (Map)
         Map<String, Object> headers = new HashMap<String, Object>();
@@ -71,6 +75,7 @@ public class JwtTokenProvider {
                 .setExpiration(accessTokenExpireDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+        log.info("[Id : " + userDTO.getId() + "] Access token generate success > " + accessJwt);
 
         // refreshToken generate
         String refreshJwt = Jwts.builder()
@@ -81,6 +86,7 @@ public class JwtTokenProvider {
                 .setExpiration(refreshTokenExpireDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+        log.info("[Id : " + userDTO.getId() + "] Refresh token generate success > " + refreshJwt);
 
         // refreshToken DB insert
         UserRefreshTokenDTO userRefreshTokenDTO = UserRefreshTokenDTO.builder()
@@ -93,37 +99,51 @@ public class JwtTokenProvider {
                 .accessToken(accessJwt)
                 .build();
 
-        return tokenDTO;
+        return tokenDTO.getAccessToken();
     }
 
-    public String validationAccessToken(String accessToken, UserDTO userDTO) {
+    public boolean validationAccessToken(String accessToken, UserDTO userDTO) {
 
-        if (isExpired(accessToken)) {
-            Optional<UserRefreshToken> optionalUserRefreshToken = userRefreshTokenRepository.findById(userDTO.getId());
-            UserRefreshTokenDTO usereRefreshTokenDTO = optionalUserRefreshToken.get().toDTO();
-            String refreshToken = usereRefreshTokenDTO.getRefreshToken();
-            return refreshToken;
+        if (isExpired(accessToken, userDTO)) {
+            log.info("[Id : " + userDTO.getId() + "] Access token is Expired.");
+            return false;
         }
-        return null;
+
+        log.info("[Id : " + userDTO.getId() + "] Access token is available.");
+        return true;
     }
 
-    public boolean validationRefreshToken(String refreshToken, UserDTO userDTO) {
+    public boolean validationRefreshToken(UserDTO userDTO) {
 
-        // refresh token 까지 만료 시 DB에서 delete후 logout처리
-        if (isExpired(refreshToken)) {
-            if (isExpired(refreshToken)) {
-                userRefreshTokenRepository.deleteById(userDTO.getId());
-                return true;
-            }
+        Optional<UserRefreshToken> optionalUserRefreshToken = userRefreshTokenRepository.findById(userDTO.getId());
+        UserRefreshTokenDTO usereRefreshTokenDTO = optionalUserRefreshToken.get().toDTO();
+        String refreshToken = usereRefreshTokenDTO.getRefreshToken();
+        if (isExpired(refreshToken, userDTO)) {
+            userRefreshTokenRepository.deleteById(userDTO.getId());
+            log.info("[Id : " + userDTO.getId() + "] Refresh token is Expired. Remove token success.");
+            return false;
         }
-        return false;
+        log.info("[Id : " + userDTO.getId() + "] Refresh token is available.");
+        return true;
     }
 
-    public boolean isExpired(String token) {
+    public boolean isExpired(String token, UserDTO userDTO) {
 
         JwtParser jwtParser = Jwts.parserBuilder().setSigningKey(secretKey.getBytes()).build();
-        Claims claims = jwtParser.parseClaimsJws(token).getBody();
-        Date expiration = claims.getExpiration();
+        Date expiration;
+        try {
+            Claims claims = jwtParser.parseClaimsJws(token).getBody();
+            expiration = claims.getExpiration();
+        } catch (ExpiredJwtException e) {
+            log.info("[Id : " + userDTO.getId() + "] Token is expired > " + token);
+            return true;
+        } catch (MalformedJwtException e) {
+            log.info("[Id : " + userDTO.getId() + "] Token is out of form > " + token);
+            return true;
+        } catch (IllegalArgumentException e) {
+            log.info("[Id : " + userDTO.getId() + "] Token is invalid > " + token);
+            return true;
+        }
         return expiration.before(new Date());
     }
 
@@ -156,6 +176,7 @@ public class JwtTokenProvider {
                 .setExpiration(accessTokenExpireDate)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+        log.info("[Id : " + userDTO.getId() + "] Access token reGenerate success > " + accessJwt);
 
         JwtTokenDTO tokenDTO = JwtTokenDTO.builder()
                 .accessToken(accessJwt)

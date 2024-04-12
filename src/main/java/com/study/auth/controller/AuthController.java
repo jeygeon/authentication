@@ -33,7 +33,7 @@ public class AuthController {
 
         // 사용자 생성
         userDTO = userService.saveUser(userDTO);
-        return ResponseEntity.ok(ResponseDTO.response(userDTO, "user save success."));
+        return ResponseEntity.ok(ResponseDTO.response(userDTO, "User save success."));
     }
 
     /**
@@ -50,8 +50,8 @@ public class AuthController {
         userDTO = userService.checkUser(userDTO);
 
         // access token, refresh token 생성
-        JwtTokenDTO token = jwtTokenProvider.generateToken(userDTO);
-        return ResponseEntity.ok(ResponseDTO.response(token, "token generate success."));
+        String accessToken = jwtTokenProvider.generateToken(userDTO);
+        return ResponseEntity.ok(ResponseDTO.response(accessToken, "Token generate success."));
     }
 
     /**
@@ -64,23 +64,20 @@ public class AuthController {
     @PostMapping("/access")
     public ResponseEntity<ResponseDTO> access(@RequestHeader("X-AUTH-ACCESS") String accessToken, @RequestBody UserDTO userDTO) {
 
-        /*
-         * access token 만료 체크
-         * access token이 만료되었을 시 refresh token이 반환된다.
-         */
-        String refreshToken = jwtTokenProvider.validationAccessToken(accessToken, userDTO);
-        if (refreshToken == null) {
-            return ResponseEntity.ok(ResponseDTO.response(accessToken, "token pass."));
+        // access token 만료 체크
+        boolean isAvailable = jwtTokenProvider.validationAccessToken(accessToken, userDTO);
+        if (isAvailable) {
+            return ResponseEntity.ok(ResponseDTO.response(accessToken, "Token pass."));
         }
 
         // refresh token 만료 체크
-        boolean isExpired = jwtTokenProvider.validationRefreshToken(refreshToken, userDTO);
-        if (isExpired) {
-            return ResponseEntity.ok(ResponseDTO.response(accessToken, "expired token. user logout success."));
+        isAvailable = jwtTokenProvider.validationRefreshToken(userDTO);
+        if (!isAvailable) {
+            return ResponseEntity.ok(ResponseDTO.response(accessToken, "Expired token. User logout success."));
         }
 
         // access token만 만료되고 refresh token은 살아있을 경우 access token 재 발급 후 return
         String newAccessToken = jwtTokenProvider.reGenerateToken(userDTO);
-        return ResponseEntity.ok(ResponseDTO.response(newAccessToken, "exist access token is expired. new token return success."));
+        return ResponseEntity.ok(ResponseDTO.response(newAccessToken, "Exist access token is expired. New token return success."));
     }
 }
