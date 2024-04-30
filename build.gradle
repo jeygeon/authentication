@@ -43,6 +43,9 @@ dependencies {
 
     // DB
     runtimeOnly("com.mysql:mysql-connector-j")
+
+    // spring sercurity
+    implementation 'org.springframework.boot:spring-boot-starter-security'
 }
 
 tasks.named('bootBuildImage') {
